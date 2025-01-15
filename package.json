@@ -10,6 +10,7 @@
     "gsap": "./gsap-premium.tgz",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "split-type": "^0.3.4",
     "web-vitals": "^3.1.0"
   },
   "overrides": {
