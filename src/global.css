@@ -7,11 +7,19 @@ body {
   background-color: black;
 }
 
-#smooth-content {
-  margin: 40px 0;
-  overflow: visible;
-  /* set a height because the contents are position: absolute, thus natively there's no height */
-  height: 5000px;
+#hidden-background {
+  position: fixed;
+  filter: brightness(40%);
+  background-image: url("/github-pink.png");
+  background-size: cover;
+  width: 100vw;
+  height: 100vh;
+}
+
+#grid-background {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
   background-image: linear-gradient(
       rgba(255, 255, 255, 0.07) 2px,
       transparent 2px
@@ -23,41 +31,30 @@ body {
   background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
 }
 
-.box {
+canvas {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+#text-container {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  margin: 0 auto;
+  z-index: 2;
+  pointer-events: none;
 }
 
-/* .a {
-  top: 0px;
+.box {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.b {
-  top: 25%;
-}
-
-.c {
-  top: 50%;
-}
-
-.d {
-  top: 75%;
-} */
-
-/* .e {}
-
-.f {
-
-} */
-
-.char {
-  transform: translateY(100%);
-  transition: transform 1s;
-}
-
-#stagger {
+.box h1 {
+  text-align: center;
+  max-width: 80vw;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
 }
