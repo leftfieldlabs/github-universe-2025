@@ -33,7 +33,7 @@ function App() {
         onEnter: () => {
           gsap.to(text, { autoAlpha: 1, duration: 0.5 }); // Fade in
           gsap.from(staggeredText.chars, {
-            duration: 0.5,
+            duration: 0.2,
             y: '100%',
             autoAlpha: 1,
             stagger: 0.05
@@ -42,7 +42,7 @@ function App() {
         onEnterBack: () => {
           gsap.to(text, { autoAlpha: 1, duration: 0.5 }); // Fade out
           gsap.from(staggeredText.chars, {
-            duration: 0.5,
+            duration: 0.2,
             y: '100%',
             autoAlpha: 1,
             stagger: 0.05
@@ -133,7 +133,7 @@ function App() {
 
   const messages = [
     "How to get a dev's attention...",
-    "Show don't tell.",
+    "Show, don't tell.",
     "Collaborate.",
     "Exude #DevEnergy.",
     "UNIVERSE is expanding.",
