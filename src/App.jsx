@@ -39,9 +39,21 @@ function App() {
             stagger: 0.05
           });
         },
-        onLeaveBack: () => {
-          gsap.to(text, { autoAlpha: 0, duration: 1 }); // Fade out and reset rotation
+        onEnterBack: () => {
+          gsap.to(text, { autoAlpha: 1, duration: 0.5 }); // Fade out
+          gsap.from(staggeredText.chars, {
+            duration: 0.5,
+            y: '100%',
+            autoAlpha: 1,
+            stagger: 0.05
+          });
         },
+        onLeave: () => {
+          gsap.to(text, { autoAlpha: 0, duration: 0.5 }); // Fade out
+        },
+        onLeaveBack: () => {
+          gsap.to(text, { autoAlpha: 0, duration: 0.5 }); // Fade in
+        }
       });
     });
   }, []);
@@ -83,7 +95,7 @@ function App() {
     const revealSplotch = { radius: 0 };
 
     gsap.to(revealSplotch, {
-      radius: 75,
+      radius: 50,
       duration: 1,
       ease: "power2.out",
       onUpdate: () => {
@@ -144,6 +156,9 @@ function App() {
         {messages.map((message, index) => (
           <div className='box' key={index}>
             <h1>{message}</h1>
+            {index === messages.length - 1 && <a href="https://www.google.com/" target="_blank"><h4>Go to deck<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 46 46" fill="white">
+              <polygon points="7 7 15.586 7 5.293 17.293 6.707 18.707 17 8.414 17 17 19 17 19 5 7 5 7 7" />
+            </svg></h4></a>}
           </div>
         ))}
       </div>

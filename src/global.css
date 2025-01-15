@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   overscroll-behavior: none;
   margin: 0;
@@ -51,6 +55,7 @@ canvas {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
 
 .box h1 {
