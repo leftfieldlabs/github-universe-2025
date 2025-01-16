@@ -12,9 +12,7 @@ h4 {
   padding: 0;
 }
 
-h1,
-h2,
-h3 {
+h1 {
   font-family: "Mona Sans", sans-serif;
   font-weight: 500;
   font-size: 146px;
@@ -22,11 +20,35 @@ h3 {
   text-shadow: 4px 4px 20px #661e1e;
 }
 
+@media (max-width: 768px) {
+  h1 {
+    font-size: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 60px;
+  }
+}
+
 h4 {
   font-family: "Mona Sans", sans-serif;
   font-weight: 500;
   font-size: 46px;
   color: white;
+}
+
+@media (max-width: 768px) {
+  h4 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  h4 {
+    font-size: 28px;
+  }
 }
 
 a {
