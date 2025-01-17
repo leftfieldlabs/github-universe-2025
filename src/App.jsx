@@ -1,164 +1,207 @@
-import './typography.css';
-import './global.css';
+import "./typography.css";
+import "./global.css";
 
-import { useLayoutEffect, useRef, useEffect } from 'react';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollSmoother } from 'gsap/ScrollSmoother';
-import { SplitText } from 'gsap/SplitText';
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollSmoother } from "gsap/ScrollSmoother";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { SplitText } from "gsap/SplitText";
+import { getClipPaths } from "./utils";
+import { messages } from "./const";
+import { TinselXLFL } from './Icons';
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, ScrollSmoother, SplitText);
+gsap.registerPlugin(
+  useGSAP,
+  ScrollTrigger,
+  ScrollSmoother,
+  SplitText,
+  ScrollToPlugin
+);
 
 function App() {
   const main = useRef();
   const textContainer = useRef();
-  const canvasRef = useRef(null);
-  const ctxRef = useRef(null);
 
-  useLayoutEffect(() => {
-    const textElements = Array.from(textContainer.current.querySelectorAll('.box h1'));
+  useGSAP(() => {
+    const boxElements = Array.from(textContainer.current.querySelectorAll('.box'));
+    let isAnimating = false;
 
-    // Add ScrollTrigger for each text element
-    textElements.forEach((text) => {
-      gsap.set(text, { autoAlpha: 0 }); // Ensure they start hidden and unrotated
-      const staggeredText = new SplitText(text);
+    boxElements.forEach((box, index) => {
+      const swipeMask = box.querySelector('.swipe-mask');
+      const maskedText = box.querySelector('h1');
+      const { swipeDirection } = messages[index];
+      const { textAnimation } = messages[index];
+      const clipPaths = getClipPaths(swipeDirection);
 
-      ScrollTrigger.create({
-        trigger: text,
-        start: "top 75%", // Start animation when the element enters the viewport
-        end: "bottom 25%", // End animation when the element starts to exit the viewport
-        toggleActions: "play reverse play reverse", // Control the animation lifecycle
-        markers: false, // Debug markers (optional)
-        onEnter: () => {
-          gsap.to(text, { autoAlpha: 1, duration: 0.5 }); // Fade in
-          gsap.from(staggeredText.chars, {
-            duration: 0.2,
-            y: '100%',
-            autoAlpha: 1,
-            stagger: 0.05
-          });
-        },
-        onEnterBack: () => {
-          gsap.to(text, { autoAlpha: 1, duration: 0.5 }); // Fade out
-          gsap.from(staggeredText.chars, {
-            duration: 0.2,
-            y: '100%',
-            autoAlpha: 1,
-            stagger: 0.05
-          });
-        },
-        onLeave: () => {
-          gsap.to(text, { autoAlpha: 0, duration: 0.5 }); // Fade out
-        },
-        onLeaveBack: () => {
-          gsap.to(text, { autoAlpha: 0, duration: 0.5 }); // Fade in
+      console.log(
+        "swipeMask:", swipeMask,
+        "text:", maskedText,
+        "swipeDirection:", swipeDirection,
+        "initialClipPath:", clipPaths[0],
+        "finalClipPath:", clipPaths
+      )
+
+      // Set initial states
+      gsap.set(maskedText, { autoAlpha: 0 });
+      const staggeredText = textAnimation === "staggered-text" ? new SplitText(maskedText) : null;
+      gsap.set(swipeMask, { clipPath: clipPaths[0] });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: box,
+          debug: true,
+          start: "top 90%",
+          end: "bottom 10%",
+          onEnter: () => {
+            console.log("onEnter", maskedText)
+            if (isAnimating) return; // Prevent triggering while animating
+            isAnimating = true;
+
+            gsap.to(maskedText, { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut' });
+            if (textAnimation === "staggered-text") {
+              gsap.from(staggeredText.chars, {
+                duration: 0.2,
+                y: '100%',
+                autoAlpha: 1,
+                stagger: 0.05
+              });
+            }
+
+            tl.to(window, {
+              scrollTo: box, // Scroll to this box smoothly when entering from below
+              duration: 0.5,
+              onComplete: () => {
+                isAnimating = false; // Reset the flag after animation is done
+              },
+            })
+
+            clipPaths.forEach((clipPath, i) => {
+              gsap.to(swipeMask, {
+                clipPath: clipPath,
+                duration: 0.5, // Adjust duration per clip path
+                ease: 'none',
+                delay: 0.4
+              });
+            });
+          },
+          onLeave: () => {
+            console.log("onLeave", maskedText)
+            tl.to(maskedText, { autoAlpha: 0, duration: 1.8, ease: 'power2.inOut' }); // Fade out
+          },
+          onEnterBack: () => {
+            if (isAnimating) return; // Prevent triggering while animating
+            isAnimating = true;
+
+            console.log("onEnterBack", maskedText)
+
+            gsap.to(maskedText, { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut' });
+            if (textAnimation === "staggered-text") {
+              gsap.from(staggeredText.chars, {
+                duration: 0.2,
+                y: '100%',
+                autoAlpha: 1,
+                stagger: 0.05
+              });
+            }
+
+            tl.to(window, {
+              scrollTo: box, // Scroll to this box smoothly when entering from below
+              duration: 0.5,
+              onComplete: () => {
+                isAnimating = false; // Reset the flag after animation is done
+              },
+            })
+
+
+          },
+          onLeaveBack: () => {
+            console.log("onLeaveBack", maskedText)
+            tl.add([
+              gsap.to(maskedText, { autoAlpha: 0, duration: 1.8, ease: 'power2.inOut' }),
+              gsap.to(swipeMask, { clipPath: clipPaths[0], duration: 1.2, ease: 'power2.inOut' })
+            ]);
+          }
         }
+        //   trigger: box,
+        //   debug: true,
+        //   start: "top 99%",
+        //   end: "bottom 15%",
+        //   onEnter: () => {
+        //     console.log("onEnter", maskedText)
+        //     if (isAnimating) return; // Prevent triggering while animating
+        //     isAnimating = true;
+
+        //     gsap.to(window, {
+        //       scrollTo: box, // Scroll to this box smoothly when entering from below
+        //       duration: 0.5,
+        //       onComplete: () => {
+        //         isAnimating = false; // Reset the flag after animation is done
+        //       },
+        //     });
+        //     gsap.to(maskedText, { opacity: 1, duration: 1.2, delay: 0.5, ease: 'power2.inOut' }); // Fade in
+        //     gsap.to(swipeMask, { clipPath: finalClipPath, duration: 1.2, delay: 0.5, ease: 'power2.inOut' });
+        //   },
+        //   onLeave: () => {
+        //     console.log("onLeave", maskedText)
+        //     gsap.to(maskedText, { opacity: 0, duration: 0.5, ease: 'power2.inOut' }); // Fade out
+        //   },
+        //   onEnterBack: () => {
+        //     if (isAnimating) return; // Prevent triggering while animating
+        //     isAnimating = true;
+
+        //     console.log("onEnterBack", maskedText)
+        //     gsap.to(window, {
+        //       scrollTo: box, // Scroll to this box smoothly when entering from below
+        //       duration: 0.5,
+        //       onComplete: () => {
+        //         isAnimating = false; // Reset the flag after animation is done
+        //       },
+        //     });
+        //     gsap.to(maskedText, { opacity: 1, duration: 0.5, ease: 'power2.inOut' }); // Fade in (reverse)
+        //   },
+        //   onLeaveBack: () => {
+        //     console.log("onLeaveBack", maskedText)
+        //     gsap.to(maskedText, { opacity: 0, duration: 0.5, ease: 'power2.inOut' }); // Fade out (reverse)
+        //     gsap.to(swipeMask, { clipPath: initialClipPath, duration: 1.2, delay: 0.5, ease: 'power2.inOut' });
+        //   },
+        // });
       });
     });
-  }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    ctxRef.current = ctx;
-
-    // Set canvas dimensions
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Fill the canvas with black
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Resize canvas on window resize
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const handleMouseMove = (e) => {
-    const canvas = canvasRef.current;
-    const ctx = ctxRef.current;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Animate a circular reveal
-    const revealSplotch = { radius: 0 };
-
-    gsap.to(revealSplotch, {
-      radius: 50,
-      duration: 1,
-      ease: "power2.out",
-      onUpdate: () => {
-        // Draw the "splotch" on the canvas with a textured edge
-        ctx.globalCompositeOperation = "destination-out"; // This makes it reveal the background
-
-        // Create a more jagged, textured edge by adding random noise to the coordinates
-        const noiseFactor = 10; // Adjust this for more or less noise
-        const randomNoise = (factor) => (Math.random() - 0.5) * factor;
-
-        // Begin drawing the splotch
-        ctx.beginPath();
-
-        // Use random noise to give texture to the edges
-        const texturedX = x + randomNoise(noiseFactor);
-        const texturedY = y + randomNoise(noiseFactor);
-
-        // Create the circle with textured edges
-        ctx.arc(texturedX, texturedY, revealSplotch.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Optionally, you could make the edge more rough by adding small random lines around the perimeter
-        const roughness = 10; // More lines = more roughness
-        for (let i = 0; i < roughness; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const offsetX = Math.cos(angle) * randomNoise(noiseFactor);
-          const offsetY = Math.sin(angle) * randomNoise(noiseFactor);
-          ctx.beginPath();
-          ctx.arc(x + offsetX, y + offsetY, revealSplotch.radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-    });
-  };
-
-  const messages = [
-    "How to get a dev's attention...",
-    "Show, don't tell.",
-    "Collaborate.",
-    "Exude #DevEnergy.",
-    "UNIVERSE is expanding.",
-    "Meet us at the source of open source.",
-    "TINSEL x LFL",
-  ];
+    // ScrollTrigger.refresh();
+  }, { scope: main }); // <-- scope is for selector text (optional)
 
   return (
-    <div id="main" ref={main} style={{ height: '100vh', overflow: 'auto' }}>
-      <div id="hidden-background" />
-      <div id="grid-background" />
-      <canvas
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-      />
-      <div
-        id="text-container"
-        ref={textContainer}
-      >
+    <div id="main" ref={main}>
+      <div id="text-container" ref={textContainer}>
         {messages.map((message, index) => (
-          <div className='box' key={index}>
-            <h1>{message}</h1>
-            {index === messages.length - 1 && <a href="https://www.google.com/" target="_blank"><h4>Go to deck<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 46 46" fill="white">
-              <polygon points="7 7 15.586 7 5.293 17.293 6.707 18.707 17 8.414 17 17 19 17 19 5 7 5 7 7" />
-            </svg></h4></a>}
+          <div className="box" key={index}>
+            <div
+              className="swipe-mask"
+              style={{
+                background: message.swipeColor,
+              }}
+            />
+            {index === messages.length - 1 ? (
+              <div className="final-message">
+                <TinselXLFL />
+                <a href="https://www.google.com/" target="_blank">
+                  <h4>
+                    Go to deck
+                  </h4>
+                </a>
+              </div>
+            ) : <h1
+              className="masked-text"
+              style={{
+                color: message.textColor,
+              }}
+            >
+              {message.text}
+            </h1>
+            }
           </div>
         ))}
       </div>

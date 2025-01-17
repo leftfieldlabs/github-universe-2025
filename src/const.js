@@ -1,0 +1,51 @@
+export const messages = [
+  {
+    text: "How to get a dev's attention...",
+    swipeColor: "#2d2d2d",
+    swipeDirection: "top-to-bottom",
+    textColor: "#f1eede",
+    textAnimation: null,
+  },
+  {
+    text: "Show, don't tell.",
+    swipeColor: "#e2c594",
+    swipeDirection: "left-to-right",
+    textColor: "#f1eede",
+    textAnimation: "staggered-text",
+  },
+  {
+    text: "Collaborate.",
+    swipeColor: "#f1eede",
+    swipeDirection: "top-to-bottom",
+    textColor: "#fff",
+    textAnimation: "staggered-text",
+  },
+  {
+    text: "Exude #DevEnergy.",
+    swipeColor: "#2d2d2d",
+    swipeDirection: "right-to-left",
+    textColor: "#f1eede",
+    textAnimation: "staggered-text",
+  },
+  {
+    text: "UNIVERSE is expanding.",
+    swipeColor: "#e2c594",
+    swipeDirection: "top-to-bottom",
+    textColor: "#f1eede",
+    textAnimation: null,
+  },
+  {
+    text: "Meet us at the source of open source.",
+    swipeColor: "#f1eede",
+    swipeDirection: "left-to-right",
+    textColor: "#fff",
+    textAnimation: null,
+  },
+  {
+    text: "TINSEL x LFL",
+    swipeColor: "#2d2d2d",
+    swipeDirection: "top-to-bottom",
+    textColor: "#f1eede",
+    textAnimation: null,
+  },
+];
