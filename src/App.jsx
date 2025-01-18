@@ -82,16 +82,8 @@ function App() {
           if (maskedText) gsap.to(maskedText, { autoAlpha: 1, duration: 2, delay: 0.5, ease: 'power2.inOut' });
           // 1C: Un-explode the svg text
           explodingPaths.forEach(p => {
-            gsap.to(p, {
-              autoAlpha: 1,
-              duration: 1.5,
-              delay: 1,
-              stagger: 0.01,
-              y: 0,
-              x: 0,
-              scale: 1,
-              ease: "power2.out"
-            });
+            gsap.to(p, { delay: 1, duration: 0.75, stagger: 0.01, autoAlpha: 1, y: 0, x: 0, scale: 1, ease: "power2.out" });
+            gsap.to(p, { duration: 0.5, delay: 5, autoAlpha: 0, y: random(-2, -180), x: random(-200, 200), scale: 0.8 })
           });
           // 1B: Stagger the text
           if (textAnimation === "staggered-text") {
