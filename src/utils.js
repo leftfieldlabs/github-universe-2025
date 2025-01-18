@@ -23,8 +23,8 @@ export const getClipPaths = (swipeDirection) => {
       break;
     case "top-to-bottom":
       clipPaths = [
-        "polygon(0 0, 0 0, 100% 0, 100% 0)",
-        "polygon(0 0, 0 100%, 100% 100%, 100% 0)",
+        "polygon(0 0, 100% 0, 100% 0, 0 0)",
+        "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
       ];
       break;
     case "bottom-to-top":
