@@ -59,9 +59,9 @@ function App() {
     triggerAnimation(0);
   }, []);
 
-  useEffect(() => {
-    console.log("currentIndex:", currentIndex);
-  }, [currentIndex]);
+  // useEffect(() => {
+  //   console.log("currentIndex:", currentIndex);
+  // }, [currentIndex]);
 
   // Helper function to calculate starting position for intro animation
   const getFromPosition = (direction) => {
@@ -106,8 +106,8 @@ function App() {
     if (currentText) currentText.style.opacity = 1;
     nextText.style.opacity = 1;
 
-    console.log("currentText:", currentText);
-    console.log("nextText:", nextText);
+    // console.log("currentText:", currentText);
+    // console.log("nextText:", nextText);
 
     const currentSplitText = messages[currentIndex].text ? new SplitText(currentText) : null;
     const nextSplitText = messages[next].text ? new SplitText(nextText) : null;
