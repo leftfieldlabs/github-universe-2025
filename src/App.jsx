@@ -139,7 +139,7 @@ function App() {
       {
         ...reversePosition,
         autoAlpha: 1,
-        duration: 0.5,
+        duration: 1,
         ease: "power2.in",
       },
     );
@@ -151,7 +151,7 @@ function App() {
       {
         x: 0,
         y: 0,
-        duration: 0.5,
+        duration: 1,
         ease: "power2.out"
       },
       "<"
