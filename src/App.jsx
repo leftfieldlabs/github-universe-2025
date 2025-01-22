@@ -1,15 +1,15 @@
 import "./typography.css";
 import "./global.css";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { SplitText } from "gsap/SplitText";
-import { getClipPaths } from "./utils";
 import { messages } from "./const";
+import { useSwipeable } from "react-swipeable";
 
 gsap.registerPlugin(
   useGSAP,
@@ -23,243 +23,281 @@ function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function App() {
   const main = useRef();
-  const textContainer = useRef();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentlyAnimating, setCurrentlyAnimating] = useState(false);
 
-  useGSAP(() => {
-    const boxElements = gsap.utils.toArray('.box');
+  // Handle mouse scroll
+  const handleScroll = (event) => {
+    if (currentlyAnimating) return; // Prevents triggering new animations while one is in progress
 
-    boxElements.forEach((box, index) => {
+    const delta = event.deltaY; // Get scroll direction (-1 or 1)
+    const sign = Math.sign(delta); // Get the sign of the delta
+    triggerAnimation(currentIndex + sign);
+  };
 
+  // Handle swipe gestures
+  const handlers = useSwipeable({
+    onSwipedLeft: () => triggerAnimation(currentIndex + 1),  // Swipe left
+    onSwipedRight: () => triggerAnimation(currentIndex - 1), // Swipe right
+    onSwipedUp: () => triggerAnimation(currentIndex + 1),    // Swipe up
+    onSwipedDown: () => triggerAnimation(currentIndex - 1),  // Swipe down
+    preventScrollOnSwipe: true,
+    trackMouse: true, // Enables swipe gestures with mouse drag
+  });
 
-      const swipeMask = box.querySelector('.swipe-mask');
-      const maskedText = box.querySelector('h1');
-      const explodingPaths = box.querySelectorAll(".exploding-text path");
+  useEffect(() => {
+    triggerAnimation(0);
+  }, []);
 
-      console.log("explodingPaths:", explodingPaths);
-      const { swipeDirection } = messages[index];
-      const { textAnimation } = messages[index];
-      const clipPaths = getClipPaths(swipeDirection);
-      const staggeredText = textAnimation === "staggered-text" && maskedText ? new SplitText(maskedText) : null;
+  useEffect(() => {
+    console.log("currentIndex:", currentIndex);
+  }, [currentIndex]);
 
-      console.log(
-        "swipeMask:", swipeMask,
-        "text:", maskedText,
-        "swipeDirection:", swipeDirection,
-        "initialClipPath:", clipPaths[0],
-        "finalClipPath:", clipPaths
-      )
+  // Helper function to calculate starting position for intro animation
+  const getFromPosition = (direction) => {
+    switch (direction) {
+      case "left":
+        return { x: "-100%", y: 0 };
+      case "top":
+        return { x: 0, y: "-100%" };
+      case "right":
+        return { x: "100%", y: 0 };
+      case "bottom":
+        return { x: 0, y: "100%" };
+      default:
+        return { x: 0, y: 0 };
+    }
+  };
 
-      // Set initial states for text animations
-      if (maskedText) gsap.set(maskedText, { autoAlpha: 0 });
-      if (explodingPaths.length > 0) {
-        console.log("set explodingPaths:", explodingPaths)
-        explodingPaths.forEach(p => {
-          gsap.set(p, { autoAlpha: 0, y: random(-2, -180), x: random(-200, 200), scale: 0.5 })
-        });
-      }
+  // Helper function to calculate reverse position for outro animation
+  const getReversePosition = (direction) => {
+    switch (direction) {
+      case "left":
+        return { x: "100%", y: 0 }; // Reverse of coming in from the left
+      case "top":
+        return { x: 0, y: "100%" }; // Reverse of coming in from the top
+      case "right":
+        return { x: "-100%", y: 0 }; // Reverse of coming in from the right
+      case "bottom":
+        return { x: 0, y: "-100%" }; // Reverse of coming in from the bottom
+      default:
+        return { x: 0, y: 0 };
+    }
+  };
 
-      // Set initial state for swipe mask
-      if (swipeMask) gsap.set(swipeMask, { clipPath: clipPaths[0] });
+  const triggerAnimation = (next) => {
+    if (next < 0 || next >= messages.length) return;
 
+    const isFirstTrigger = currentIndex === 0 && next === 0;
+    const textAnimation = messages[next].textAnimation;
 
-      ScrollTrigger.create({
-        trigger: box,
-        debug: true,
-        start: 'top 95%',
-        end: '+=500',
-        snap: {
-          snapTo: 1.5,
-          duration: 0.5,
-          ease: 'power1.inOut'
-        },
-        onEnter: () => {
-          console.log("onEnter", box)
+    const currentText = isFirstTrigger ? null : main.current.querySelector(`.message-${currentIndex}`);
+    const nextText = main.current.querySelector(`.message-${next}`);
+    if (currentText) currentText.style.opacity = 1;
+    nextText.style.opacity = 1;
 
-          /* First: Initiate text enter animation */
-          // 1A: Fade in the text
-          if (maskedText) gsap.to(maskedText, { autoAlpha: 1, duration: 2, delay: 0.5, ease: 'power2.inOut' });
-          // 1C: Un-explode the svg text
-          explodingPaths.forEach(p => {
-            gsap.to(p, { delay: 1, duration: 0.75, stagger: 0.01, autoAlpha: 1, y: 0, x: 0, scale: 1, ease: "power2.out" });
-            gsap.to(p, { duration: 0.5, delay: 5, autoAlpha: 0, y: random(-2, -180), x: random(-200, 200), scale: 0.8 })
-          });
-          // 1B: Stagger the text
-          if (textAnimation === "staggered-text") {
-            gsap.from(staggeredText.chars, {
-              duration: 0.2,
-              delay: 1,
-              y: '100%',
-              stagger: 0.05
-            });
-          }
+    console.log("currentText:", currentText);
+    console.log("nextText:", nextText);
 
-          /* Second: Initiate swipe animation */
-          gsap.to(swipeMask, {
-            clipPath: clipPaths[1],
-            duration: 0.6,
-            delay: 2,
-            ease: 'none',
-          });
-        },
-      })
+    const currentSplitText = messages[currentIndex].text ? new SplitText(currentText) : null;
+    const nextSplitText = messages[next].text ? new SplitText(nextText) : null;
 
-      // const tl = gsap.timeline({
-      //   scrollTrigger: {
-      //     trigger: box,
-      //     // pin: true,
-      //     // start: "top 95%",
-      //     // end: "bottom 5%",
-      //     onEnter: () => {
-      //       console.log("onEnter", box)
+    const currentMask = main.current.querySelector(`.swipe-mask.message-${currentIndex}`);
+    const nextMask = main.current.querySelector(`.swipe-mask.message-${next}`);
 
-      //       /* First: Initiate swipe animation */
-      //       clipPaths.forEach((clipPath, i) => {
-      //         gsap.to(swipeMask, {
-      //           clipPath: clipPath,
-      //           duration: 0.5,
-      //           ease: 'none',
-      //         });
-      //       });
+    const isReverse = next < currentIndex; // Determine if we're going backward
+    const currentDirection = messages[currentIndex].swipeDirection;
+    const nextDirection = messages[next].swipeDirection;
 
-      //       /* Second: Initiate text enter animation */
-      //       // 1A: Fade in the text
-      //       console.log("fade in text", maskedText);
-      //       if (maskedText) gsap.to(maskedText, { autoAlpha: 1, duration: 0.5, ease: 'power2.inOut' });
+    // Calculate the reverse position for the current mask when going backward
+    const reversePosition = getReversePosition(currentDirection);
+    const nextPosition = getFromPosition(nextDirection);
 
-      //       // 1B: Stagger the text
-      //       if (textAnimation === "staggered-text") {
-      //         gsap.from(staggeredText.chars, {
-      //           duration: 0.2,
-      //           delay: 0.25,
-      //           y: '100%',
-      //           stagger: 0.05
-      //         });
-      //       }
-      //       // 1C: Un-explode the svg text
-      //       explodingPaths.forEach(p => {
-      //         gsap.to(p, {
-      //           autoAlpha: 1,
-      //           duration: 1.5,
-      //           delay: 0.25,
-      //           stagger: 0.01,
-      //           y: 0,
-      //           x: 0,
-      //           scale: 1,
-      //           ease: "power2.out"
-      //         });
-      //       });
-
-      //     },
-      //     onLeave: () => {
-      //       console.log("onLeave", box)
-      //       tl.to(maskedText, { autoAlpha: 0, duration: 1.8, ease: 'power2.inOut' }); // Fade out
-
-      //       explodingPaths.forEach(p => {
-      //         gsap.to(p, { duration: 0.5, autoAlpha: 0, y: random(-2, -180), x: random(-200, 200), scale: 0.8 })
-      //       });
-      //     },
-      //     onEnterBack: () => {
-      //       if (isAnimating) return; // Prevent triggering while animating
-      //       isAnimating = true;
-
-      //       console.log("onEnterBack", box)
-
-      //       gsap.to(maskedText, { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut' });
-      //       if (textAnimation === "staggered-text") {
-      //         gsap.from(staggeredText.chars, {
-      //           duration: 0.2,
-
-      //           y: '100%',
-      //           autoAlpha: 1,
-      //           stagger: 0.05
-      //         });
-      //       }
-
-      //       // tl.to(window, {
-      //       //   scrollTo: box, // Scroll to this box smoothly when entering from below
-      //       //   duration: 0.5,
-      //       //   onComplete: () => {
-      //       //     isAnimating = false; // Reset the flag after animation is done
-      //       //   },
-      //       // })
-
-
-      //     },
-      //     onLeaveBack: () => {
-      //       console.log("onLeaveBack", box)
-      //       tl.add([
-      //         gsap.to(maskedText, { autoAlpha: 0, duration: 1.8, ease: 'power2.inOut' }),
-      //         gsap.to(swipeMask, { clipPath: clipPaths[0], duration: 1.2, ease: 'power2.inOut' })
-      //       ]);
-      //     }
-      //   }
-      //   //   trigger: box,
-      //   //   debug: true,
-      //   //   start: "top 99%",
-      //   //   end: "bottom 15%",
-      //   //   onEnter: () => {
-      //   //     console.log("onEnter", maskedText)
-      //   //     if (isAnimating) return; // Prevent triggering while animating
-      //   //     isAnimating = true;
-
-      //   //     gsap.to(window, {
-      //   //       scrollTo: box, // Scroll to this box smoothly when entering from below
-      //   //       duration: 0.5,
-      //   //       onComplete: () => {
-      //   //         isAnimating = false; // Reset the flag after animation is done
-      //   //       },
-      //   //     });
-      //   //     gsap.to(maskedText, { opacity: 1, duration: 1.2, delay: 0.5, ease: 'power2.inOut' }); // Fade in
-      //   //     gsap.to(swipeMask, { clipPath: finalClipPath, duration: 1.2, delay: 0.5, ease: 'power2.inOut' });
-      //   //   },
-      //   //   onLeave: () => {
-      //   //     console.log("onLeave", maskedText)
-      //   //     gsap.to(maskedText, { opacity: 0, duration: 0.5, ease: 'power2.inOut' }); // Fade out
-      //   //   },
-      //   //   onEnterBack: () => {
-      //   //     if (isAnimating) return; // Prevent triggering while animating
-      //   //     isAnimating = true;
-
-      //   //     console.log("onEnterBack", maskedText)
-      //   //     gsap.to(window, {
-      //   //       scrollTo: box, // Scroll to this box smoothly when entering from below
-      //   //       duration: 0.5,
-      //   //       onComplete: () => {
-      //   //         isAnimating = false; // Reset the flag after animation is done
-      //   //       },
-      //   //     });
-      //   //     gsap.to(maskedText, { opacity: 1, duration: 0.5, ease: 'power2.inOut' }); // Fade in (reverse)
-      //   //   },
-      //   //   onLeaveBack: () => {
-      //   //     console.log("onLeaveBack", maskedText)
-      //   //     gsap.to(maskedText, { opacity: 0, duration: 0.5, ease: 'power2.inOut' }); // Fade out (reverse)
-      //   //     gsap.to(swipeMask, { clipPath: initialClipPath, duration: 1.2, delay: 0.5, ease: 'power2.inOut' });
-      //   //   },
-      //   // });
-      // });
+    const timeline = gsap.timeline({
+      onStart: () => {
+        setCurrentlyAnimating(true);
+      },
+      onComplete: () => {
+        setCurrentIndex(next);
+        setCurrentlyAnimating(false);
+      },
     });
 
-    ScrollTrigger.refresh();
-  }, { scope: main }); // <-- scope is for selector text (optional)
+    // Animate the current mask out of view (reverse if needed)
+    timeline.to(
+      currentMask,
+      {
+        ...reversePosition,
+        autoAlpha: 1,
+        duration: 0.5,
+        ease: "power2.in",
+      },
+    );
+
+    // Intro animation for the next swipe mask
+    timeline.fromTo(
+      nextMask,
+      { ...nextPosition, autoAlpha: 1 },
+      {
+        x: 0,
+        y: 0,
+        duration: 0.5,
+        ease: "power2.out"
+      },
+      "<"
+    );
+
+    // Outro animation for the current text
+    timeline.to(
+      currentSplitText ? currentSplitText.chars : currentText,
+      {
+        y: isReverse ? -50 : 50,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "power2.in",
+      }
+    );
+
+    switch (textAnimation) {
+      case "burn":
+        const shuffledNextSplitText = shuffle(nextSplitText.chars);
+        timeline.fromTo(shuffledNextSplitText,
+          {
+            autoAlpha: 0,
+            y: 5,
+            textShadow: "0px 0px 16px rgb(255, 255, 255)",
+            color: "transparent"
+          },
+          {
+            duration: 1.5,
+            stagger: 0.01,
+            autoAlpha: 1,
+            y: 0,
+            textShadow: "0px 0px 0px rgb(255, 255, 255)",
+            color: messages[next].textColor
+          }
+        )
+        break;
+      case "explode":
+        const e = nextText.querySelectorAll(".exploding-text rect");
+
+        let introXDelay = 1;
+        let introYDelay = 1.25;
+        let outroXDelay = 3;
+        let outroYDelay = 3.25;
+
+        for (let i = 0; i < e.length; i++) {
+          let p = e[i];
+
+          // Intro animation: Start outside the frame and move into position
+          introXDelay += 0.005;
+          introYDelay += 0.005;
+
+          gsap.set(p, {
+            autoAlpha: 0,
+            x: random(120, 160), // Start from exploded positions
+            y: random(-20, -60),
+          });
+
+          gsap.to(p, {
+            delay: introXDelay,
+            duration: 0.75,
+            autoAlpha: 1,
+            x: 0,
+            y: 0,
+            ease: "power2.out",
+          });
+
+          // Outro animation: Blow away
+          outroXDelay += 0.005;
+          outroYDelay += 0.005;
+
+          gsap.to(p, {
+            delay: outroXDelay + 1.5, // Delay to allow intro animation to finish
+            duration: 1.0,
+            autoAlpha: 0,
+            x: random(120, 160), // Move back to exploded positions
+            ease: "power2.in",
+          });
+
+          gsap.to(p, {
+            delay: outroYDelay + 1.5, // Match delay with x-axis movement
+            duration: 0.75,
+            y: random(-20, -60),
+            ease: "power2.in",
+          });
+        }
+        break;
+      default:
+        // Stagger animation for the next text (characters)
+        timeline.fromTo(
+          nextSplitText ? nextSplitText.chars : nextText,
+          {
+            y: isReverse ? -50 : 50,  // Adjust based on reverse
+            opacity: isReverse ? 1 : 0, // Visible if reverse
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            ease: "power2.out",
+            stagger: 0.05,
+            delay: 0.5,
+          }
+        );
+        break;
+    }
+  }
 
   return (
-    <div id="main" ref={main}>
-      <div id="text-container" ref={textContainer}>
+    <div
+      {...handlers}
+      onWheel={handleScroll}
+    >
+      <div id="main" ref={main}>
         {messages.map((message, index) => (
           <div className="box" key={index}>
-            <div
-              className="swipe-mask"
-              style={{
-                background: message.swipeColor,
-              }}
-            />
-            {message.element}
+            {message.text &&
+              <h1
+                className={`masked-text message-${index}`}
+                style={{
+                  wordBreak: "keep-all",
+                  textWrap: message.noWrap ? "nowrap" : "normal",
+                  color: message.textColor,
+                }}
+              >
+                {message.text}
+              </h1>
+            }
+            {message.element &&
+              <div className={`element message-${index}`}>
+                {message.element}
+              </div>}
           </div>
+
+        ))}
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`swipe-mask message-${index}`}
+            style={{
+              background: message.swipeColor,
+            }}
+          />
         ))}
       </div>
     </div>
+
   );
 }
 

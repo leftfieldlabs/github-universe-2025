@@ -10,81 +10,60 @@ body {
   font-family: "Mona Sans", sans-serif;
   background-color: #f1eede;
 }
-/*
-#hidden-background {
-  position: fixed;
-  filter: brightness(40%);
-  background-image: url("/github-pink.png");
-  background-size: cover;
+
+#main {
+  position: relative;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
 
-#grid-background {
-  position: fixed;
-  width: 100vw;
-  height: 100vh;
-  background-image: linear-gradient(
-      rgba(255, 255, 255, 0.02) 2px,
-      transparent 2px
-    ),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 2px, transparent 2px),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
-  background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
-} */
+.masked-text {
+  mix-blend-mode: difference;
+  text-align: center;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  opacity: 0;
+  z-index: 2;
+}
 
-#text-container {
+.exploding-text {
+  overflow: visible;
+}
+
+.element {
+  text-align: center;
+  opacity: 0;
+  z-index: 2;
+}
+
+.right {
   position: absolute;
-  pointer-events: none;
-  width: 100%;
 }
 
 .box {
-  position: relative;
+  position: absolute;
+  padding: 40px;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
 }
 
+@media (max-width: 768px) {
+  .box {
+    padding: 20px;
+  }
+}
+
 .swipe-mask {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
-}
-
-.masked-text {
-  z-index: 2;
-  mix-blend-mode: difference;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-  text-align: center;
-  max-width: 80vw;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-}
-
-.exploding-text {
-  z-index: 2;
-  overflow: visible;
-  max-width: 340px;
-  width: 80vw;
-}
-
-.final-message {
-  z-index: 2;
-  max-width: 80vw;
-  text-align: center;
-  gap: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+  opacity: 0;
 }

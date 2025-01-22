@@ -1,19 +1,7 @@
 @font-face {
   font-family: "Mona Sans";
-  font-weight: 800;
-  src: url("/fonts/MonaSans-Bold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Mona Sans";
   font-weight: 600;
   src: url("/fonts/MonaSans-SemiBold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Monaspace";
-  font-weight: 500;
-  src: url("/fonts/MonaspaceNeon-Medium.woff2") format("woff2");
 }
 
 h1,
@@ -22,33 +10,22 @@ h3,
 h4 {
   margin: 0;
   padding: 0;
+  line-height: normal;
+  user-select: none;
 }
 
 h1 {
   font-family: "Mona Sans", sans-serif;
   font-weight: 600;
-  font-size: 98px;
-  letter-spacing: -6px;
-}
-
-@media (max-width: 768px) {
-  h1 {
-    font-size: 80px;
-    letter-spacing: -2px;
-  }
+  font-size: 58px;
+  letter-spacing: -3px;
 }
 
 @media (max-width: 480px) {
   h1 {
-    font-size: 42px;
+    font-size: 38px;
+    letter-spacing: -1px;
   }
-}
-
-h4 {
-  font-family: "Monaspace", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  color: #f1eede;
 }
 
 a {
